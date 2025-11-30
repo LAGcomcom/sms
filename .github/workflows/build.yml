@@ -37,6 +37,13 @@ jobs:
         run: |
           curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle.zip
+      - name: Ensure AndroidX properties
+        run: |
+          mkdir -p android
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2g -Dkotlin.daemon.jvm.options=-Xmx1g" >> android/gradle.properties
+          echo "kotlin.code.style=official" >> android/gradle.properties
       - name: Build APK
         run: |
           echo "Gradle properties (android)"; cat android/gradle.properties || true
