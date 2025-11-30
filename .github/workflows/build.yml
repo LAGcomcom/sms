@@ -48,7 +48,10 @@ jobs:
         run: |
           echo "Gradle properties (android)"; cat android/gradle.properties || true
           echo "Gradle properties (root)"; cat gradle.properties || true
-          ./gradle-8.7/bin/gradle -p android assembleDebug assembleRelease
+          echo "JAVA_HOME=$JAVA_HOME"; $JAVA_HOME/bin/javac -version || true
+          echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+          ./gradle-8.7/bin/gradle -p android :app:properties --console=plain
+          ./gradle-8.7/bin/gradle -p android --stacktrace --info assembleDebug assembleRelease
       - name: Prepare APK artifacts
         run: |
           mkdir -p dist
@@ -59,6 +62,10 @@ jobs:
         with:
           name: android-unsigned
           path: dist
+      - name: Verify build success and artifacts
+        run: |
+          test -f dist/app-debug.apk || (echo "missing debug apk" && exit 1)
+          test -f dist/app-release-unsigned.apk || echo "release unsigned not found (may be optimized out)"
       - name: Set signing availability
         id: signcheck
         env:
