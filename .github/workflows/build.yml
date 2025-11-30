@@ -1,0 +1,114 @@
+name: build
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack PHP web
+        run: |
+          mkdir -p dist
+          zip -r dist/web.zip server/php/public server/php/lib server/php/config server/php/schema.sql server/php/.env.example
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: dist/web.zip
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+      - name: Download Gradle
+        run: |
+          curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          unzip -q gradle.zip
+      - name: Build APK
+        run: |
+          ./gradle-8.5/bin/gradle -p android assembleDebug assembleRelease
+      - name: Prepare APK artifacts
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/ || true
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk dist/ || true
+      - name: Upload unsigned APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unsigned
+          path: dist
+      - name: Set signing availability
+        id: signcheck
+        env:
+          HAS_SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_ALIAS_PASSWORD != '' }}
+        run: echo "has=${HAS_SIGNING}" >> $GITHUB_OUTPUT
+      - name: Decode keystore
+        if: steps.signcheck.outputs.has == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+      - name: Align and sign APK
+        if: steps.signcheck.outputs.has == 'true'
+        env:
+          STORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PWD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+        run: |
+          mkdir -p dist-signed
+          if [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            $ANDROID_HOME/build-tools/34.0.0/zipalign -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk dist-signed/app-release-aligned.apk
+            $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks keystore.jks --ks-pass pass:${STORE_PWD} --ks-key-alias ${KEY_ALIAS} --key-pass pass:${KEY_PWD} --out dist-signed/app-release-signed.apk dist-signed/app-release-aligned.apk
+          fi
+      - name: Upload signed APK
+        if: steps.signcheck.outputs.has == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-signed
+          path: dist-signed
+  release:
+    needs: [web, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: dist/web
+      - name: Download signed android artifact (optional)
+        uses: actions/download-artifact@v4
+        with:
+          name: android-signed
+          path: dist/android-signed
+        continue-on-error: true
+      - name: Download unsigned android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-unsigned
+          path: dist/android-unsigned
+      - name: Collect release files
+        run: |
+          echo "RELEASE_FILES<<EOF" >> $GITHUB_ENV
+          if [ -f dist/web/web.zip ]; then echo dist/web/web.zip >> $GITHUB_ENV; fi
+          if [ -f dist/android-signed/app-release-signed.apk ]; then echo dist/android-signed/app-release-signed.apk >> $GITHUB_ENV; fi
+          if [ -f dist/android-unsigned/app-debug.apk ]; then echo dist/android-unsigned/app-debug.apk >> $GITHUB_ENV; fi
+          if [ -f dist/android-unsigned/app-release-unsigned.apk ]; then echo dist/android-unsigned/app-release-unsigned.apk >> $GITHUB_ENV; fi
+          echo "EOF" >> $GITHUB_ENV
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.RELEASE_FILES }}
+          generate_release_notes: true
