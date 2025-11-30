@@ -39,16 +39,6 @@ android {
     jvmTarget = '17'
   }
 }
-tasks.named('compileDebugJavaWithJavac').configure {
-  sourceCompatibility = '17'
-  targetCompatibility = '17'
-  if (options.hasProperty('release')) { options.release = 17 }
-}
-tasks.named('compileReleaseJavaWithJavac').configure {
-  sourceCompatibility = '17'
-  targetCompatibility = '17'
-  if (options.hasProperty('release')) { options.release = 17 }
-}
 tasks.withType(JavaCompile).configureEach {
   sourceCompatibility = '17'
   targetCompatibility = '17'
