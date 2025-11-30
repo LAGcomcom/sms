@@ -1,0 +1,12 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="match_parent">
+  <EditText android:id="@+id/etServer" android:hint="服务器地址，如 http://localhost:8000" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <EditText android:id="@+id/etToken" android:hint="Token或JWT" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <EditText android:id="@+id/etPhone" android:hint="本机号码，如 +8613812345678" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <Button android:id="@+id/btnSave" android:text="保存配置" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+    <Button android:id="@+id/btnStartHeartbeat" android:text="启动心跳" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+    <Button android:id="@+id/btnStartOverlay" android:text="开启悬浮窗" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+  </LinearLayout>
+  <Button android:id="@+id/btnRegister" android:text="注册设备获取Token并启动" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <TextView android:id="@+id/tvStatus" android:text="状态" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
