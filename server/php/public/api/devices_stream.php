@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__.'/bootstrap.php';
 $claims=Auth::requireToken();
+ignore_user_abort(true);
+set_time_limit(0);
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
+header('X-Accel-Buffering: no');
 @ob_end_flush();
 @ob_implicit_flush(1);
 function push($event,$data){
@@ -25,5 +28,8 @@ while(true){
       push('devices',[]);
     }
   }catch(Throwable $e){ push('error','db_error'); }
+  echo ": heartbeat\n\n";
+  @ob_flush();
+  @flush();
   sleep(5);
 }

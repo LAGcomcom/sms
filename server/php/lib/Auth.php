@@ -8,6 +8,11 @@ class Auth{
     if(stripos($hdr,'Bearer ')===0){
       $token=trim(substr($hdr,7));
     }
+    if(!$token){
+      if(isset($_GET['token'])) $token=trim($_GET['token']);
+      elseif(isset($_GET['jwt'])) $token=trim($_GET['jwt']);
+      elseif(isset($_GET['access_token'])) $token=trim($_GET['access_token']);
+    }
     $expected=env('APP_TOKEN');
     $key=env('APP_KEY');
     $ok=false; $claims=null;

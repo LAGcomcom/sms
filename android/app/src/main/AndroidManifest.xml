@@ -5,7 +5,7 @@
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-  <application android:label="SmsForwarder" android:icon="@mipmap/ic_launcher" android:usesCleartextTraffic="true">
+  <application android:label="SmsForwarder" android:icon="@android:drawable/ic_dialog_info" android:usesCleartextTraffic="true">
     <activity android:name=".ui.MainActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

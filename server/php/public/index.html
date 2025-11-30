@@ -79,7 +79,7 @@ document.getElementById('register').addEventListener('click',async()=>{
   const j=await r.json(); if(j.token){ tokenInput.value=j.token; alert('注册成功，已获取Token'); }
 });
 loadDevices();loadMessages();
-let es;try{es=new EventSource('/api/devices_stream.php',{withCredentials:false});es.onmessage=(e)=>{};es.addEventListener('devices',(ev)=>{try{const data=JSON.parse(ev.data);renderDevices(data)}catch{}});es.onerror=()=>{if(es){es.close();}};}catch{}
+let es;try{const tk=tokenInput.value.trim();const url='/api/devices_stream.php'+(tk?('?token='+encodeURIComponent(tk)):'');es=new EventSource(url,{withCredentials:false});es.onmessage=(e)=>{};es.addEventListener('devices',(ev)=>{try{const data=JSON.parse(ev.data);renderDevices(data)}catch{}});es.onerror=()=>{if(es){es.close();}};}catch{}
 setInterval(()=>{if(!es||es.readyState===2){loadDevices();}loadMessages()},5000);
 </script>
 </body>
