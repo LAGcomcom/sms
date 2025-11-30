@@ -1,0 +1,4 @@
+<resources>
+  <string name="app_name">SmsForwarder</string>
+  <string name="accessibility_service_description">短信监听服务</string>
+</resources>
