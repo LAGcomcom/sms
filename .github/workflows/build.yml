@@ -39,6 +39,8 @@ jobs:
           unzip -q gradle.zip
       - name: Build APK
         run: |
+          echo "Gradle properties (android)"; cat android/gradle.properties || true
+          echo "Gradle properties (root)"; cat gradle.properties || true
           ./gradle-8.7/bin/gradle -p android assembleDebug assembleRelease
       - name: Prepare APK artifacts
         run: |
