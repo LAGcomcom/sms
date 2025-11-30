@@ -35,11 +35,11 @@ jobs:
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       - name: Download Gradle
         run: |
-          curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle.zip
       - name: Build APK
         run: |
-          ./gradle-8.5/bin/gradle -p android assembleDebug assembleRelease
+          ./gradle-8.7/bin/gradle -p android assembleDebug assembleRelease
       - name: Prepare APK artifacts
         run: |
           mkdir -p dist
